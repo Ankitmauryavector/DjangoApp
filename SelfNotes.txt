@@ -1,0 +1,180 @@
+To See the version of Django:
+
+        python -m django --version
+
+
+To see the available SubCommands :
+        django-admin
+
+To create Django Project:
+        django-admin startproject Project_Name
+
+To start the server:
+        cd Project_Name
+
+        python manage.py runserver
+
+To create App (lets say blog):
+        python manage.py startapp blog
+
+
+
+
+------------------------------------------------------
+
+go to blog folder
+    open views.py
+    from django.http import HttpResponse
+
+    #define Some function like below
+
+    def home(request):
+        return HttpResponse('<h1>Home Page</h1>')
+
+
+    def about(request):
+        return HttpResponse('<h1>About Page</h1>')
+
+now make a file named as urls.py in blog folder
+
+open blog/urls.py and edit
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+    path('', views.home, name='blog-home'),
+    path('about', views.about, name='blog-home'),
+    ]
+
+
+Map this new urls folder to the Project_Name directory:
+    add below line to the urlpatterns section:
+        path('', include('blog.urls')),
+
+----------------------------------------------------------
+
+In above Code in view section We added HttpResponse('<h1>Home Page</h1>')
+    what if we want to add more Html code
+        Ans : We will create a folder named as Tamplets :
+            inside it We will create a folder as blog:
+                inside it all of our html code will be written in different folder
+                about.html
+                home.html
+
+Now in this section:
+    in return section write render(request,'blog/home.html')
+
+    in above section of this file:
+        we will write some list of dictionaries
+        posts=[
+        {
+        'Aurthor':'Ankit Maurya',
+        'Title':'First Post',
+        'Content':'Django app',
+        'Date':'Mar 24,2020'
+        },
+        {
+        'Aurthor':'Amit Maurya',
+        'Title':'Second Post',
+        'Content':'Django app',
+        'Date':'Jan 26,2020'
+        }
+        ]
+
+
+        in home function we add a variable named as context:
+            context={'posts':posts}
+
+            we will pass this to render function argument.
+            render(request,'blog/home.html',context)
+
+
+--------------------------------------------------------------
+we can see that in above codes we are writing  same code again and again for different files excluding some specific line.
+    now to avoid that   we will make a base.html that will contain basic html code that requires in most of the pages
+    the body section will contain
+    {%block content%}
+    {%endblock content%}
+
+
+    in home.html we will remove all code and write in new short way
+    {%extends 'blog/base.html'%}
+    {%block content%}
+    {% for post in posts%}
+    <h1>{{post.Title}}</h1>
+    <p> BY {{post.Aurthor}} on {{post.Date}}</p>
+    <p>{{post.Content}}</p>
+    {%endfor%}
+    {%endblock content%}
+
+
+---------------------------------------------------------------
+
+in any html page use link href using url of blog section .
+using urls of blog section have many advantages like change once effects all.
+name section of urlpatterns are used here in href.
+href='{%url 'blog-home'%}'
+
+
+
+
+-----------------------------------------------------------------
+
+now if we go to 127.0.0.1:8000/admin this will open admin panel with login page
+as of now we havn't created any user.
+if we want to create any user by command
+python manage.py createsuperuser this will show errors and will not make any users
+
+now to see if any new database are been added then run command:
+python manage.py makemigrations
+this will show 'no changes found'
+
+now to make changes and create database table specified by django ..
+python manage.py migrate
+
+
+this will create database with some tables ..
+
+
+now open admin page and login
+explore more to get new things done.
+
+-------------------------------------------------------------------------
+To create our own database:
+open models.py under blog directory:
+add these lines ->
+    from django.utils import timezone
+    from django.contrib.auth.models import User
+
+
+create
+    class Post(models.Model):
+        Title = models.CharField(max_length=100)
+        Content = models.TextField()
+        Date = models.DateTimeField(default=timezone.now)
+        Aurthor = models.ForeignKey(User, on_delete=models.CASCADE)
+
+        def __str__(self):
+            return self.Title
+
+
+now write these command to see changes:
+    python manage.py makemigrations
+
+    python manage.py sqlmigrate blog 0001
+
+    python manage.py migrate
+
+
+    open interactive shell:
+    python manage.py shell
+
+    from blog.models import Post
+    from django.contrib.auth.models import User
+
+    User.object.all()
+    user=User.objects.filter(username='Vector').first()
+    post_1=Post(Title='Blog 1',Content='First Post Content!',Aurthor=user)
+    Post.object.all()
+    post_1.save()
+
